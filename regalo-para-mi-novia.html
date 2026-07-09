@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceso Restringido - Solo Para Mi Amor</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #1a0b1e 0%, #3d102f 100%);
+            --cyber-neon: #00f3ff;
+            --laser-glow: #00ff66;
+            --love-pink: #ff4d6d;
+            --text-light: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image: radial-gradient(circle, rgba(255, 77, 109, 0.1) 10%, transparent 20%);
+            background-size: 30px 30px;
+            z-index: 0;
+        }
+
+        .contenedor {
+            position: relative;
+            width: 400px;
+            height: 540px;
+            z-index: 1;
+        }
+
+        /* PANTALLA DEL ESCÁNER */
+        .interfaz-escaner {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            transform-origin: top center;
+        }
+
+        .pantalla-header {
+            text-align: center;
+        }
+
+        .titulo-interfaz {
+            font-size: 1.8rem;
+            color: var(--text-light);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            margin-bottom: 5px;
+        }
+
+        .subtitulo-interfaz {
+            font-size: 0.85rem;
+            color: #bfa3bb;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .zona-huella {
+            position: relative;
+            width: 160px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .huella-pad {
+            width: 130px;
+            height: 170px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .huella-svg {
+            width: 80px;
+            height: 110px;
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.4);
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke 0.3s ease;
+            pointer-events: none;
+        }
+
+        /* CUANDO ESTÁ ESCANEANDO */
+        .escaneando .huella-pad {
+            border-color: var(--cyber-neon);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.6), inset 0 0 15px rgba(0, 243, 255, 0.4);
+        }
+
+        .escaneando .huella-svg {
+            stroke: var(--cyber-neon);
+            filter: drop-shadow(0 0 8px var(--cyber-neon));
+        }
+
+        /* LÍNEA LÁSER */
+        .linea-laser {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--laser-glow);
+            box-shadow: 0 0 15px var(--laser-glow), 0 0 5px #fff;
+            top: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .escaneando .linea-laser {
+            opacity: 1;
+            animation: moverLaser 1.2s infinite ease-in-out;
+        }
+
+        @keyframes moverLaser {
+            0% { top: 10px; }
+            50% { top: 150px; }
+            100% { top: 10px; }
+        }
+
+        /* Consola de Estado y Botón */
+        .consola-estado {
+            text-align: center;
+            width: 100%;
+        }
+
+        /* ESTILIZACIÓN DEL NUEVO BOTÓN DE ACCIÓN INDESTRUCTIBLE */
+        .boton-escanear {
+            background: linear-gradient(135deg, #ff4d6d 0%, #ff758f 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 85%;
+            margin-bottom: 15px;
+        }
+
+        .boton-escanear:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 77, 109, 0.6);
+        }
+
+        .boton-escanear:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.3);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .texto-estado {
+            font-size: 0.85rem;
+            color: #ffb3c1;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .escaneando .texto-estado {
+            color: var(--cyber-neon);
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+        }
+
+        .barra-progreso-bg {
+            width: 80%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .barra-progreso-llenado {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyber-neon), var(--laser-glow));
+            transition: width 0.1s linear;
+        }
+
+        /* CARTA OCULTA */
+        .carta-amor {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 35px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            transform: scale(0.6) rotateX(-30deg);
+            opacity: 0;
+            z-index: 0;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #4a2834;
+            border: 2px solid #ffe5ec;
+        }
+
+        .carta-texto {
+            text-align: center;
+            line-height: 1.7;
+            margin-top: 15px;
+        }
+
+        .carta-texto h2 {
+            color: var(--love-pink);
+            font-family: 'Georgia', serif;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .carta-texto p {
+            font-size: 1.05rem;
+            color: #5c3d47;
+            margin-bottom: 15px;
+        }
+
+        .firma {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-weight: bold;
+            color: var(--love-pink);
+            margin-top: 25px;
+            font-size: 1.1rem;
+        }
+
+        /* ESTADO FINAL */
+        .acceso-concedido .interfaz-escaner {
+            transform: scale(0.8) translateY(-110%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .acceso-concedido .carta-amor {
+            transform: scale(1) rotateX(0deg);
+            opacity: 1;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor" id="contenedorPrincipal">
+        
+        <div class="interfaz-escaner" id="pantallaEscaner">
+            <div class="pantalla-header">
+                <h1 class="titulo-interfaz">Security Lock</h1>
+                <p class="subtitulo-interfaz">Autenticación de Amor</p>
+            </div>
+            
+            <div class="zona-huella">
+                <div class="huella-pad" id="huellaBoton">
+                    <svg class="huella-svg" viewBox="0 0 100 100">
+                        <path d="M50,15 C35,15 25,27 25,45 C25,48 26,52 27,55 M33,32 C28,37 28,42 28,45 C28,55 35,65 50,65 C65,65 72,55 72,45 M38,25 C43,21 57,21 62,25 M43,80 C47,83 53,83 57,80 M50,5 C25,5 10,25 10,50 C10,58 13,68 18,75 M82,75 C87,68 90,58 90,50 C90,25 75,5 50,5" />
+                        <path d="M50,25 C40,25 35,32 35,45 C35,58 42,58 50,58 C58,58 65,58 65,45 C65,32 60,25 50,25 Z" />
+                        <path d="M50,35 C46,35 44,38 44,45 C44,52 46,52 50,52 C54,52 56,52 56,45 C56,38 54,35 50,35 Z" />
+                    </svg>
+                    <div class="linea-laser"></div>
+                </div>
+            </div>
+            
+            <div class="consola-estado">
+                <button class="boton-escanear" id="btnAccion">Iniciar Escaneo</button>
+                <p class="texto-estado" id="mensajeEstado">PRESIONA EL BOTÓN PARA VERIFICAR</p>
+                <div class="barra-progreso-bg">
+                    <div class="barra-progreso-llenado" id="barraProgreso"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="carta-amor">
+            <div class="carta-texto">
+                <h2>¡Acceso Concedido! ❤️</h2>
+                <p>¡Hola, mi niña hermosa! Si estás leyendo esto es porque confirmaste que eres la única dueña de mi corazón.</p>
+                <p>Quería sorprenderte hoy con este detallito virtual para recordarte lo muchísimo que te amo. Gracias por cada momento increíble a tu lado, por tus risas y por ser mi persona favorita en todo el universo.</p>
+                <p>Eres perfecta tal y como eres, y me haces el novio más feliz del mundo.</p>
+                <p class="firma">Te amo por siempre y para siempre... 💕</p>
+            </div>
+            <div style="text-align: center; font-size: 1.8rem;">
+                🐻❤️✨
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const btnAccion = document.getElementById('btnAccion');
+        const huellaBoton = document.getElementById('huellaBoton');
+        const pantallaEscaner = document.getElementById('pantallaEscaner');
+        const contenedorPrincipal = document.getElementById('contenedorPrincipal');
+        const barraProgreso = document.getElementById('barraProgreso');
+        const mensajeEstado = document.getElementById('mensajeEstado');
+
+        let progreso = 0;
+        let tiempoEscaneo;
+
+        function ejecutarProceso() {
+            btnAccion.disabled = true;
+            pantallaEscaner.classList.add('escaneando');
+            mensajeEstado.innerText = "ESCANEANDO HUELLA CON EXITO...";
+
+            tiempoEscaneo = setInterval(() => {
+                progreso += 2;
+                if (progreso >= 100) {
+                    progreso = 100;
+                    barraProgreso.style.width = '100%';
+                    clearInterval(tiempoEscaneo);
+                    
+                    mensajeEstado.innerText = "¡ACCESO AUTORIZADO!";
+                    mensajeEstado.style.color = "#00ff66";
+                    
+                    setTimeout(() => {
+                        contenedorPrincipal.classList.add('acceso-concedido');
+                    }, 600);
+                } else {
+                    barraProgreso.style.width = progreso + '%';
+                }
+            }, 40); // Carga total automática muy fluida de 2 segundos
+        }
+
+        // Activadores alternativos redundantes (Cualquiera de los dos inicia el proceso sin fallar)
+        btnAccion.addEventListener('click', ejecutarProceso);
+        huellaBoton.addEventListener('click', ejecutarProceso);
+    </script>
+</body>
+</html>
